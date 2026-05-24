@@ -28,14 +28,14 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $ECR_REGISTRY/reviewlens-backend:latest -f server/Dockerfile .
+          docker build -t $ECR_REGISTRY/reviewlens-backend:latest -f server/Dockerfile server
           docker push $ECR_REGISTRY/reviewlens-backend:latest
 
       - name: Build & Push Frontend to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $ECR_REGISTRY/reviewlens-frontend:latest -f frontend/Dockerfile .
+          docker build -t $ECR_REGISTRY/reviewlens-frontend:latest -f Dockerfile .
           docker push $ECR_REGISTRY/reviewlens-frontend:latest
 
       - name: Update Kubeconfig for EKS
