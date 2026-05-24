@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviewlens-backend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: reviewlens-backend
+  template:
+    metadata:
+      labels:
+        app: reviewlens-backend  # Must match selector.matchLabels
+    spec:
+      containers:
+        - name: backend
+          image: node:20-alpine
+          imagePullPolicy: IfNotPresent  # ✅ Avoid re-pulling unchanged images
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:  # ✅ FIXED: env must be at same level as ports, NOT inside it
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "8080"
+            - name: MONGODB_URI
+              value: "mongodb://10.0.2.231:27017/reviewlens"  # ⚠️ See note below
+          # ✅ Production best practices:
+          resources:  # Prevent one pod from consuming all node resources
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:  # Restart pod if app crashes/hangs
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:  # Don't send traffic until app is ready
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:  # Run as non-root for security
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false

@@ -1,0 +1,47 @@
+# ========================================================
+# KUBERNETES FRONTEND DEPLOYMENT & PUBLIC LOAD BALANCER
+# ========================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviewlens-frontend
+  namespace: default
+  labels:
+    app: reviewlens-frontend
+spec:
+  replicas: 2 # Launches 2 identical React Nginx containers!
+  selector:
+    matchLabels:
+      app: reviewlens-frontend
+  template:
+    metadata:
+      labels:
+        app: reviewlens-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:alpine # Generic Nginx workspace for testing
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviewlens-frontend-service
+  namespace: default
+spec:
+  selector:
+    app: reviewlens-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer # Tells AWS to automatically build your Public Load Balancer!

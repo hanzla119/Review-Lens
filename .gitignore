@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.npm/
+.env
+.env.local
+.env.production
+.docker/
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+terraform.tfvars.json
+*.exe

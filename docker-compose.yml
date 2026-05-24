@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Database Tier
+  mongodb:
+    image: mongo:7.0
+    container_name: reviewlens-db
+    restart: always
+    ports:
+      - "27018:27017" # Connects your database to your host machine for Compass
+    volumes:
+      - mongo-data:/data/db # PERSISTENCY: Saves data so reviews are not lost
+    networks:
+      - reviewlens-network
+
+  # 2. Node.js Express Backend API Tier
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: reviewlens-api
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - MONGODB_URI=mongodb://mongodb:27017/reviewlens # Connects securely via Docker DNS
+    ports:
+      - "8080:8080"
+    networks:
+      - reviewlens-network
+    depends_on:
+      - mongodb
+
+  # 3. Nginx + React Frontend Web Tier
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reviewlens-web
+    restart: always
+    ports:
+      - "80:80" # Standard Web HTTP port
+    networks:
+      - reviewlens-network
+    depends_on:
+      - backend
+
+# Persistent Volumes
+volumes:
+  mongo-data:
+
+# Isolated Networks
+networks:
+  reviewlens-network:
+    driver: bridge
